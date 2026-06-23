@@ -1,0 +1,34 @@
+<idea-plugin>
+    <id>com.leeyf.acpcommit</id>
+    <name>ACP Commit Message</name>
+    <vendor>leeyf</vendor>
+
+    <description><![CDATA[
+        Generate Git commit messages with an ACP agent configured in JetBrains AI Assistant.
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.vcs</depends>
+    <depends>Git4Idea</depends>
+
+    <resource-bundle>messages.AcpCommitBundle</resource-bundle>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationService serviceImplementation="com.leeyf.acpcommit.settings.AcpCommitSettings"/>
+        <projectService serviceImplementation="com.leeyf.acpcommit.settings.AcpCommitProjectState"/>
+        <projectConfigurable
+                id="com.leeyf.acpcommit.settings"
+                displayName="ACP Commit Message"
+                instance="com.leeyf.acpcommit.settings.AcpCommitConfigurable"/>
+        <notificationGroup id="ACP Commit Message" displayType="BALLOON"/>
+    </extensions>
+
+    <actions>
+        <action id="ACPCommit.GenerateCommitMessage"
+                class="com.leeyf.acpcommit.action.GenerateCommitMessageAction"
+                text="Generate Commit Message with ACP"
+                description="Generate a commit message with a configured ACP agent">
+            <add-to-group group-id="Vcs.MessageActionGroup" anchor="last"/>
+        </action>
+    </actions>
+</idea-plugin>
