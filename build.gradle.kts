@@ -2,13 +2,13 @@ import org.jetbrains.intellij.platform.gradle.TestFrameworkType
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    kotlin("jvm") version "2.2.21"
-    kotlin("plugin.serialization") version "2.2.21"
-    id("org.jetbrains.intellij.platform") version "2.16.0"
+    kotlin("jvm") version "2.4.10"
+    kotlin("plugin.serialization") version "2.4.10"
+    id("org.jetbrains.intellij.platform") version "2.18.1"
 }
 
 group = "com.leeyf.acpcommit"
-version = "0.1.7"
+version = "0.1.8"
 
 repositories {
     mavenCentral()
@@ -43,6 +43,9 @@ dependencies {
             intellijIdea("2026.1.3")
         }
         bundledPlugin("Git4Idea")
+        bundledModule("intellij.platform.vcs.dvcs")
+        bundledModule("intellij.platform.vcs.impl")
+        bundledModule("intellij.platform.vcs.dvcs.impl")
         testFramework(TestFrameworkType.Platform)
     }
 }
@@ -55,7 +58,7 @@ intellijPlatform {
 
         ideaVersion {
             sinceBuild = "261"
-            untilBuild = "261.*"
+            untilBuild = "262.*"
         }
     }
 

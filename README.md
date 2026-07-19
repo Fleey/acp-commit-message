@@ -4,7 +4,7 @@ Generate Git commit messages from the JetBrains Commit tool window with a local 
 
 ## Requirements
 
-- A JetBrains IDE based on IntelliJ Platform 2026.1 (`261.*`)
+- A JetBrains IDE based on IntelliJ Platform 2026.1 or 2026.2 (`261.*` or `262.*`)
 - Git integration enabled
 - A local ACP agent in `~/.jetbrains/acp.json`
 - The agent must already be authenticated; complete its login flow in a terminal first
@@ -64,13 +64,13 @@ The external agent process still runs under the current operating-system user. A
 
 ## Build
 
-The project uses JDK 21, Kotlin 2.2.21, Gradle 9.5, IntelliJ Platform Gradle Plugin 2.16.0, and ACP Kotlin SDK 0.24.0.
+The project uses JDK 21, Kotlin 2.4.10, Gradle 9.5, IntelliJ Platform Gradle Plugin 2.18.1, and ACP Kotlin SDK 0.24.0.
 
 ```bash
 ./gradlew test buildPlugin
 ```
 
-For offline development against an installed 2026.1 IDE:
+For offline development against an installed 2026.1 or 2026.2 IDE:
 
 ```bash
 ./gradlew test buildPlugin -PlocalIdePath="/Applications/GoLand.app"
