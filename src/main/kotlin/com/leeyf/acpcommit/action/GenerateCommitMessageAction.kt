@@ -11,6 +11,7 @@ import com.intellij.openapi.project.DumbAwareAction
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ProjectRootManager
 import com.intellij.openapi.ui.popup.JBPopupFactory
+import com.intellij.openapi.util.Key
 import com.intellij.openapi.vcs.VcsDataKeys
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.vcs.commit.CommitWorkflowUi
@@ -44,8 +45,26 @@ class GenerateCommitMessageAction : DumbAwareAction() {
                 CommitWorkflowAccess.includedUnversionedFiles(it).isNotEmpty()
         } == true
         val hasGit = project?.let { GitRepositoryManager.getInstance(it).repositories.isNotEmpty() } == true
-        val hasAgent = AcpConfigLoader.load() is AcpConfigResult.Success
+        val agentResult = AcpConfigLoader.load()
+        val hasAgent = agentResult is AcpConfigResult.Success
+        if (project != null && workflow != null) {
+            notifyConfigFailureOnce(project, agentResult)
+        }
         event.presentation.isEnabledAndVisible = project != null && workflow != null && hasChanges && hasGit && hasAgent
+    }
+
+    /**
+     * update() runs on every UI refresh, so a broken config would otherwise
+     * spam a notification per tick. Only notify when the failure message
+     * changes, and reset on success so a later recurrence notifies again.
+     */
+    private fun notifyConfigFailureOnce(project: Project, result: AcpConfigResult) {
+        val message = (result as? AcpConfigResult.Failure)?.message
+        if (project.getUserData(LAST_CONFIG_FAILURE_KEY) == message) return
+        project.putUserData(LAST_CONFIG_FAILURE_KEY, message)
+        if (message != null) {
+            AcpCommitNotifications.error(project, message)
+        }
     }
 
     override fun actionPerformed(event: AnActionEvent) {
@@ -189,5 +208,9 @@ class GenerateCommitMessageAction : DumbAwareAction() {
             .map(VirtualFile::getPath)
             .map(Path::of)
         return (listOf(basePath) + roots).distinct()
+    }
+
+    companion object {
+        private val LAST_CONFIG_FAILURE_KEY = Key.create<String?>("acpcommit.lastConfigFailure")
     }
 }
