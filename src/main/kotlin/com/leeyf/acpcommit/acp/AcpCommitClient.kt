@@ -262,14 +262,13 @@ class AcpCommitClient(
         if (!session.modelsSupported) return false
 
         val available = session.availableModels
-        val match = available.firstOrNull { it.modelId.value == model || it.name == model }
-            ?: available.firstOrNull {
-                it.modelId.value.equals(model, ignoreCase = true) || it.name.equals(model, ignoreCase = true)
-            }
+        val candidates = available.map { it.modelId.value to it.name }
+        val matchedId = findModelMatch(model, candidates)?.first
             ?: throw AcpCommitException(
                 "Selected model '$model' is not available for this ACP agent. " +
-                    availableModelsMessage(available.map { "${it.name} (${it.modelId.value})" }),
+                    availableModelsMessage(candidates.map { (value, name) -> "$name ($value)" }),
             )
+        val match = available.first { it.modelId.value == matchedId }
 
         if (session.currentModel.value.value != match.modelId.value) {
             session.setModel(match.modelId)
@@ -291,10 +290,7 @@ class AcpCommitClient(
             ?: return false
 
         val options = option.modelValues()
-        val match = options.firstOrNull { (value, name) -> value == model || name == model }
-            ?: options.firstOrNull { (value, name) ->
-                value.equals(model, ignoreCase = true) || name.equals(model, ignoreCase = true)
-            }
+        val match = findModelMatch(model, options)
             ?: throw AcpCommitException(
                 "Selected model '$model' is not available for this ACP agent. " +
                     availableModelsMessage(options.map { (value, name) -> "$name ($value)" }),
@@ -303,6 +299,20 @@ class AcpCommitClient(
         session.setConfigOption(option.id, SessionConfigOptionValue.of(match.first))
         return true
     }
+
+    /**
+     * Matches a saved model preference against currently available (value, name) options.
+     * Falls back to a prefix match (e.g. "Foo" -> "Foo/low") so stale selections saved before
+     * an agent split a model into reasoning-effort variants keep working instead of hard failing.
+     */
+    private fun findModelMatch(model: String, candidates: List<Pair<String, String>>): Pair<String, String>? =
+        candidates.firstOrNull { (value, name) -> value == model || name == model }
+            ?: candidates.firstOrNull { (value, name) ->
+                value.equals(model, ignoreCase = true) || name.equals(model, ignoreCase = true)
+            }
+            ?: candidates.firstOrNull { (value, name) ->
+                value.startsWith("$model/", ignoreCase = true) || name.startsWith("$model (", ignoreCase = true)
+            }
 
     private fun SessionConfigOption.Select.modelValues(): List<Pair<String, String>> =
         when (val selectOptions = options) {
